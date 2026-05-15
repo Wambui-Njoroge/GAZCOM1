@@ -8,22 +8,21 @@ const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const nodemailer = require('nodemailer');
-const path = require('path');
 const db = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ========== CORS CONFIGURATION (FIXED) ==========
-// Define allowed origins (your frontend URLs)
+// ========== CORS CONFIGURATION (SIMPLIFIED & HARDCODED) ==========
 const allowedOrigins = [
-    'https://gazcom-frontend.onrender.com',
-    'http://localhost:5500',   // VS Code Live Server
+    'https://gazcom-frontend.onrender.com',   // your live frontend
+    'http://localhost:5500',                  // VS Code Live Server
     'http://127.0.0.1:5500',
-    'http://localhost:3000',   // common dev ports
+    'http://localhost:3000',
     'http://localhost:8080'
 ];
 
+// Use cors() with dynamic origin check
 app.use(cors({
     origin: function (origin, callback) {
         // Allow requests with no origin (like mobile apps, curl, Postman)
@@ -40,8 +39,23 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
 }));
 
-// Handle preflight requests explicitly
+// Handle preflight requests (OPTIONS) for all routes
 app.options('*', cors());
+
+// Manual fallback to ensure headers are always set for allowed origins
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+        res.header('Access-Control-Allow-Credentials', 'true');
+        res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+        res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    }
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
 
 // ========== OTHER MIDDLEWARE ==========
 app.use(express.json());
@@ -449,7 +463,7 @@ app.get('/api/health', (req, res) => {
 
 // ========== START SERVER ==========
 app.listen(PORT, () => {
-    console.log(`🚀 GAZCOM Backend running on port ${PORT}`);
-    console.log(`📍 API available at http://localhost:${PORT}/api`);
-    console.log(`✅ CORS enabled for: ${allowedOrigins.join(', ')}`);
+    console.log(` GAZCOM Backend running on port ${PORT}`);
+    console.log(` API available at http://localhost:${PORT}/api`);
+    console.log(` CORS enabled for: ${allowedOrigins.join(', ')}`);
 });
