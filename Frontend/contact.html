@@ -27,6 +27,14 @@
             color: var(--orange);
             margin-bottom: 1rem;
         }
+        .contact-info-card a {
+            color: var(--dark-blue);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+        .contact-info-card a:hover {
+            color: var(--orange);
+        }
         .contact-form-card {
             background: white;
             padding: 2rem;
@@ -67,7 +75,7 @@
 </head>
 <body>
 
-    <!-- ========== NAVBAR (identical to index.html) ========== -->
+    <!-- ========== NAVBAR ========== -->
     <nav class="navbar">
         <div class="container nav-container">
             <a href="index.html" class="logo">
@@ -86,22 +94,25 @@
         </div>
     </nav>
 
-    <!-- ========== CONTENT ========== -->
+    <!-- ========== CONTENT WITH CLICKABLE CONTACTS ========== -->
     <div class="container contact-section">
         <div class="contact-grid">
             <div class="contact-info-card">
                 <i class="fas fa-map-marker-alt"></i>
                 <h3>Visit Us</h3>
                 <p>Nairobi, Kenya</p>
+                
                 <i class="fas fa-phone-alt"></i>
                 <h3>Call Us</h3>
-                <p>+254 724 515 819</p>
+                <p><a href="tel:+254724515819">+254 724 515 819</a></p>
+                
                 <i class="fab fa-whatsapp"></i>
                 <h3>WhatsApp</h3>
-                <p>+254 724 515 819</p>
+                <p><a href="https://wa.me/254724515819" target="_blank">+254 724 515 819</a></p>
+                
                 <i class="fas fa-envelope"></i>
                 <h3>Email</h3>
-                <p>gazcom.gm@gmail.com</p>
+                <p><a href="mailto:gazcom.gm@gmail.com">gazcom.gm@gmail.com</a></p>
             </div>
             <div class="contact-form-card">
                 <h2>Send us a message</h2>
@@ -118,7 +129,7 @@
         </div>
     </div>
 
-    <!-- ========== FOOTER (identical to index.html) ========== -->
+    <!-- ========== FOOTER ========== -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -126,9 +137,9 @@
                     <h4>GAZCOM General Merchants</h4>
                     <p>For Your Petroleum Solutions.</p>
                     <div class="contact-info">
-                        <p><i class="fas fa-phone-alt"></i> +254 724 515 819</p>
-                        <p><i class="fab fa-whatsapp"></i> +254 724 515 819</p>
-                        <p><i class="fas fa-envelope"></i> gazcom.gm@gmail.com</p>
+                        <p><i class="fas fa-phone-alt"></i> <a href="tel:+254724515819">+254 724 515 819</a></p>
+                        <p><i class="fab fa-whatsapp"></i> <a href="https://wa.me/254724515819" target="_blank">+254 724 515 819</a></p>
+                        <p><i class="fas fa-envelope"></i> <a href="mailto:gazcom.gm@gmail.com">gazcom.gm@gmail.com</a></p>
                     </div>
                 </div>
                 <div class="footer-col">
@@ -156,10 +167,7 @@
 
     <script src="js/main.js"></script>
     <script>
-       const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://gazcom-backend.onrender.com/api';
-
+        const API_BASE = 'https://gazcom-backend.onrender.com/api';
 
         document.getElementById('contactForm').addEventListener('submit', async (e) => {
             e.preventDefault();
