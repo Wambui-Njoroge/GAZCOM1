@@ -2,68 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shop - GAZCOM Petroleum Equipment</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>GAZCOM | For Your Petroleum Solutions</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
     <link rel="stylesheet" href="css/style.css">
-    <style>
-        .shop-header {
-            background: linear-gradient(135deg, var(--dark-blue), var(--jungle-green));
-            color: white;
-            padding: 3rem 0;
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .shop-header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-        .filters-bar {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1rem;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            background: white;
-            padding: 1rem;
-            border-radius: 16px;
-            box-shadow: var(--shadow-sm);
-        }
-        .category-filter select, .search-box input {
-            padding: 10px 16px;
-            border: 1px solid #ddd;
-            border-radius: 40px;
-            font-size: 1rem;
-            font-family: inherit;
-        }
-        .search-box {
-            display: flex;
-            gap: 8px;
-        }
-        .search-box button {
-            background: var(--orange);
-            border: none;
-            padding: 0 20px;
-            border-radius: 40px;
-            color: white;
-            cursor: pointer;
-        }
-        .products-count {
-            color: var(--gray-text);
-            font-size: 0.9rem;
-        }
-        @media (max-width: 768px) {
-            .filters-bar {
-                flex-direction: column;
-                align-items: stretch;
-            }
-        }
-    </style>
 </head>
 <body>
 
+  
     <nav class="navbar">
         <div class="container nav-container">
             <a href="index.html" class="logo">
@@ -82,6 +31,7 @@
         </div>
     </nav>
 
+    <!-- ========== SHOP HEADER ========== -->
     <section class="shop-header">
         <div class="container">
             <h1>Our Products</h1>
@@ -89,6 +39,7 @@
         </div>
     </section>
 
+    <!-- ========== FILTERS & PRODUCTS ========== -->
     <div class="container">
         <div class="filters-bar">
             <div class="category-filter">
@@ -104,16 +55,17 @@
         </div>
 
         <div class="products-grid" id="shopProductsGrid">
-            <div class="loading-spinner"><i class="fas fa-spinner fa-pulse"></i> Loading products...</div>
+            <div class="loading-spinner"><i class="fas fa-spinner fa-pulse"></i> Loading...</div>
         </div>
     </div>
 
+    <!-- ========== FOOTER ========== -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
                 <div class="footer-col">
                     <h4>GAZCOM General Merchants</h4>
-                    <p>Your trusted partner for petroleum equipment solutions.</p>
+                    <p>For Your Petroleum Solutions.</p>
                     <div class="contact-info">
                         <p><i class="fas fa-phone-alt"></i> +254 724 515 819</p>
                         <p><i class="fab fa-whatsapp"></i> +254 724 515 819</p>
@@ -143,12 +95,12 @@
         </div>
     </footer>
 
+    <!-- Main JavaScript -->
     <script src="js/main.js"></script>
+    
+    <!-- Page-specific JavaScript -->
     <script>
-        // NO LOCAL_PLACEHOLDER here – use the global one from main.js
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:5000/api'
-            : 'https://gazcom-backend.onrender.com/api';
+        // No 'API_BASE' declaration here! It's already loaded from main.js
 
         let allProducts = [];
 
@@ -157,17 +109,19 @@
                 const res = await fetch(`${API_BASE}/categories`);
                 const cats = await res.json();
                 const select = document.getElementById('categorySelect');
+                select.innerHTML = '<option value="">All Categories</option>';
                 cats.forEach(cat => {
                     const option = document.createElement('option');
                     option.value = cat.id;
                     option.textContent = cat.name;
                     select.appendChild(option);
                 });
+                // Check URL parameter for pre-selected category
                 const urlParams = new URLSearchParams(window.location.search);
                 const catId = urlParams.get('category');
                 if (catId) {
                     select.value = catId;
-                    loadProducts();  // auto-load products for selected category
+                    loadProducts();
                 }
             } catch (err) {
                 console.error('Failed to load categories', err);
@@ -254,10 +208,8 @@
         });
 
         async function initShop() {
-            initMobileMenu();  // defined in main.js
+            initMobileMenu(); // from main.js
             await loadCategories();
-            // loadProducts() is already called inside loadCategories if category param present
-            // otherwise we still need to load all products
             if (!window.location.search.includes('category')) {
                 await loadProducts();
             }
