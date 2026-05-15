@@ -184,7 +184,7 @@ function displayFeaturedProducts(products) {
     
     featuredGrid.innerHTML = products.map(product => `
         <div class="product-card">
-            <img src="${product.image_url || 'https://via.placeholder.com/300x200?text=No+Image'}" alt="${escapeHtml(product.name)}" class="product-img" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Not+Found'">
+           <img src="${product.image_url || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'200\' viewBox=\'0 0 300 200\'%3E%3Crect width=\'300\' height=\'200\' fill=\'%23f0f0f0\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23999\' font-family=\'Arial\' font-size=\'14\'%3ENo Image%3C/text%3E%3C/svg%3E'}"  alt="${escapeHtml(product.name)}" class="product-img" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Not+Found'">
             <div class="product-info">
                 <h3 class="product-name">${escapeHtml(product.name)}</h3>
                 <p class="product-category">${escapeHtml(product.category_name || product.category)}</p>
