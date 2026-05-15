@@ -145,9 +145,7 @@
 
     <script src="js/main.js"></script>
     <script>
-        // Local placeholder SVG (same as in main.js)
-        const LOCAL_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-family='Arial' font-size='14'%3ENo Image%3C/text%3E%3C/svg%3E";
-        
+        // NO LOCAL_PLACEHOLDER here – use the global one from main.js
         const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
             ? 'http://localhost:5000/api'
             : 'https://gazcom-backend.onrender.com/api';
@@ -169,6 +167,7 @@
                 const catId = urlParams.get('category');
                 if (catId) {
                     select.value = catId;
+                    loadProducts();  // auto-load products for selected category
                 }
             } catch (err) {
                 console.error('Failed to load categories', err);
@@ -183,12 +182,13 @@
             if (searchTerm) url += `search=${encodeURIComponent(searchTerm)}&`;
             try {
                 const res = await fetch(url);
+                if (!res.ok) throw new Error('Network response error');
                 const products = await res.json();
                 allProducts = products;
                 displayProducts(products);
             } catch (err) {
-                console.error(err);
-                document.getElementById('shopProductsGrid').innerHTML = '<p class="loading-spinner">Failed to load products. Please try again.</p>';
+                console.error('loadProducts error:', err);
+                document.getElementById('shopProductsGrid').innerHTML = '<p class="loading-spinner">Failed to load products. Please check backend CORS settings.</p>';
             }
         }
 
@@ -202,6 +202,7 @@
                 return;
             }
 
+            // LOCAL_PLACEHOLDER is from main.js – use it directly
             grid.innerHTML = products.map(product => `
                 <div class="product-card">
                     <img src="${product.image_url || LOCAL_PLACEHOLDER}" alt="${escapeHtml(product.name)}" class="product-img">
@@ -253,9 +254,13 @@
         });
 
         async function initShop() {
-            initMobileMenu();
+            initMobileMenu();  // defined in main.js
             await loadCategories();
-            await loadProducts();
+            // loadProducts() is already called inside loadCategories if category param present
+            // otherwise we still need to load all products
+            if (!window.location.search.includes('category')) {
+                await loadProducts();
+            }
         }
 
         document.addEventListener('DOMContentLoaded', initShop);
