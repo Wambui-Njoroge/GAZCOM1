@@ -1,11 +1,7 @@
 // ========== GAZCOM - MAIN FRONTEND JAVASCRIPT ==========
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000/api'
-<<<<<<< HEAD
     : 'https://gazcom-backend.onrender.com/api';
-=======
-    : 'https://gazcom1.onrender.com'; 
->>>>>>> 0f87aee3606ae550d4acb6aab513f8ba00ae756c
 
 // ========== GLOBAL VARIABLES ==========
 let currentSlide = 0;
