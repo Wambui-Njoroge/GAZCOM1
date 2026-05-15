@@ -192,12 +192,7 @@
 
     <script src="js/main.js"></script>
     <script>
-        // Local placeholder SVG (reliable, no external network)
-        const LOCAL_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='400' viewBox='0 0 600 400'%3E%3Crect width='600' height='400' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-family='Arial' font-size='20'%3ENo Image%3C/text%3E%3C/svg%3E";
-
-        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-            ? 'http://localhost:5000/api'
-            : 'https://gazcom-backend.onrender.com/api';
+        // Variables LOCAL_PLACEHOLDER and API_BASE are already defined in main.js
 
         const phoneNumber = '+254724515819';
         const adminEmail = 'gazcom.gm@gmail.com';
