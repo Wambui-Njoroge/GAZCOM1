@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link rel="stylesheet" href="css/style.css">
     <style>
-        /* Additional shop-specific styles */
         .shop-header {
             background: linear-gradient(135deg, var(--dark-blue), var(--jungle-green));
             color: white;
@@ -65,7 +64,6 @@
 </head>
 <body>
 
-    <!-- Navbar (same as index) -->
     <nav class="navbar">
         <div class="container nav-container">
             <a href="index.html" class="logo">
@@ -84,7 +82,6 @@
         </div>
     </nav>
 
-    <!-- Shop Header -->
     <section class="shop-header">
         <div class="container">
             <h1>Our Products</h1>
@@ -92,7 +89,6 @@
         </div>
     </section>
 
-    <!-- Filters & Products -->
     <div class="container">
         <div class="filters-bar">
             <div class="category-filter">
@@ -112,7 +108,6 @@
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
@@ -150,15 +145,15 @@
 
     <script src="js/main.js"></script>
     <script>
-        // Shop-specific JavaScript (overrides some functions from main.js)
-    const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/api'
-    : 'https://gazcom-backend.onrender.com/api';
-
+        // Local placeholder SVG (same as in main.js)
+        const LOCAL_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-family='Arial' font-size='14'%3ENo Image%3C/text%3E%3C/svg%3E";
+        
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000/api'
+            : 'https://gazcom-backend.onrender.com/api';
 
         let allProducts = [];
 
-        // Load categories into dropdown
         async function loadCategories() {
             try {
                 const res = await fetch(`${API_BASE}/categories`);
@@ -170,7 +165,6 @@
                     option.textContent = cat.name;
                     select.appendChild(option);
                 });
-                // Check URL parameter for pre-selected category
                 const urlParams = new URLSearchParams(window.location.search);
                 const catId = urlParams.get('category');
                 if (catId) {
@@ -181,7 +175,6 @@
             }
         }
 
-        // Load products with filters
         async function loadProducts() {
             const categoryId = document.getElementById('categorySelect').value;
             const searchTerm = document.getElementById('searchInput').value;
@@ -211,31 +204,22 @@
 
             grid.innerHTML = products.map(product => `
                 <div class="product-card">
-                   <img src="${product.image_url || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'200\' viewBox=\'0 0 300 200\'%3E%3Crect width=\'300\' height=\'200\' fill=\'%23f0f0f0\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23999\' font-family=\'Arial\' font-size=\'14\'%3ENo Image%3C/text%3E%3C/svg%3E'}"  
-                         alt="${escapeHtml(product.name)}" 
-                         class="product-img" 
-                         onerror="this.src='https://via.placeholder.com/300x200?text=Image+Not+Found'">
+                    <img src="${product.image_url || LOCAL_PLACEHOLDER}" alt="${escapeHtml(product.name)}" class="product-img">
                     <div class="product-info">
                         <h3 class="product-name">${escapeHtml(product.name)}</h3>
                         <p class="product-category">${escapeHtml(product.category_name || 'Uncategorized')}</p>
                         <div class="stock-badge"><i class="fas fa-boxes"></i> Stock: ${product.stock_quantity ?? 'Call for availability'}</div>
                         <p class="product-desc">${escapeHtml(product.description ? product.description.substring(0, 100) : 'No description')}${product.description && product.description.length > 100 ? '...' : ''}</p>
-                        <button class="inquire-btn" 
-                                data-product-id="${product.id}" 
-                                data-product-name="${escapeHtml(product.name)}" 
-                                data-product-category="${escapeHtml(product.category_name || '')}">
+                        <button class="inquire-btn" data-product-id="${product.id}" data-product-name="${escapeHtml(product.name)}" data-product-category="${escapeHtml(product.category_name || '')}">
                             <i class="fas fa-envelope"></i> Inquire Now
                         </button>
-                        <button class="details-btn" 
-                                data-product-id="${product.id}"
-                                style="margin-top: 8px; background: var(--dark-blue); width: 100%; padding: 8px; border-radius: 40px; border: none; color: white; cursor: pointer;">
+                        <button class="details-btn" data-product-id="${product.id}" style="margin-top: 8px; background: var(--dark-blue); width: 100%; padding: 8px; border-radius: 40px; border: none; color: white; cursor: pointer;">
                             <i class="fas fa-info-circle"></i> View Details
                         </button>
                     </div>
                 </div>
             `).join('');
 
-            // Attach inquiry events
             document.querySelectorAll('.inquire-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const id = btn.dataset.productId;
@@ -244,7 +228,6 @@
                     openEmailInquiry(id, name, category);
                 });
             });
-            // Attach details button
             document.querySelectorAll('.details-btn').forEach(btn => {
                 btn.addEventListener('click', (e) => {
                     const id = btn.dataset.productId;
@@ -263,21 +246,18 @@
             });
         }
 
-        // Event listeners
         document.getElementById('categorySelect').addEventListener('change', loadProducts);
         document.getElementById('searchBtn').addEventListener('click', loadProducts);
         document.getElementById('searchInput').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') loadProducts();
         });
 
-        // Initialize shop page
         async function initShop() {
-            initMobileMenu(); // from main.js
+            initMobileMenu();
             await loadCategories();
             await loadProducts();
         }
 
-        // Make sure openEmailInquiry is defined (it is in main.js)
         document.addEventListener('DOMContentLoaded', initShop);
     </script>
 </body>

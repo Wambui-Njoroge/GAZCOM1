@@ -16,6 +16,9 @@ const nextBtn = document.getElementById('nextBtn');
 const carouselDots = document.getElementById('carouselDots');
 const featuredGrid = document.getElementById('featuredGrid');
 
+// Local reliable placeholder (no external network)
+const LOCAL_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-family='Arial' font-size='14'%3ENo Image%3C/text%3E%3C/svg%3E";
+
 // ========== HELPER FUNCTIONS ==========
 function showLoading(container, show = true) {
     if (show) {
@@ -33,7 +36,6 @@ async function fetchCategories() {
         const response = await fetch(`${API_BASE}/categories`);
         if (!response.ok) throw new Error('Failed to fetch categories');
         const categories = await response.json();
-        // Ensure we have exactly the 5 main categories (filter if needed)
         return categories.filter(cat => cat.name && cat.name.trim() !== '');
     } catch (error) {
         console.error('Error fetching categories:', error);
@@ -55,7 +57,6 @@ function buildCarousel(categories) {
     carouselDots.innerHTML = '';
     
     categories.forEach((cat, index) => {
-        // Create slide
         const slide = document.createElement('div');
         slide.className = 'carousel-slide';
         slide.style.backgroundImage = `url(${cat.image_url || 'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=1200'})`;
@@ -70,7 +71,6 @@ function buildCarousel(categories) {
         `;
         carouselSlides.appendChild(slide);
         
-        // Create dot
         const dot = document.createElement('div');
         dot.className = 'dot';
         dot.dataset.index = index;
@@ -81,7 +81,6 @@ function buildCarousel(categories) {
     updateCarousel();
     startAutoRotate();
     
-    // Add event listeners to "Explore Now" buttons
     document.querySelectorAll('.explore-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const categoryId = btn.dataset.categoryId;
@@ -136,7 +135,7 @@ function startAutoRotate() {
     if (autoRotateInterval) clearInterval(autoRotateInterval);
     autoRotateInterval = setInterval(() => {
         nextSlide();
-    }, 6000); // 6 seconds
+    }, 6000);
 }
 
 function resetAutoRotate() {
@@ -165,11 +164,10 @@ async function fetchFeaturedProducts() {
         displayFeaturedProducts(products);
     } catch (error) {
         console.error('Error fetching featured products:', error);
-        // Fallback dummy products
         const dummyProducts = [
-            { id: 1, name: 'Fuel Dispenser Nozzle', category: 'PETROLEUM EQUIPMENTS', description: 'Automatic shut-off nozzle, 1" inlet', stock_quantity: 12, image_url: 'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=400' },
-            { id: 2, name: 'Explosion-Proof LED Light', category: 'PETROLEUM ELECTRICALS', description: 'Class I Division 1, 100W', stock_quantity: 8, image_url: 'https://images.unsplash.com/photo-1563206767-5b18f218e8de?w=400' },
-            { id: 3, name: 'LPG Regulator', category: 'PETROLEUM GAS AND ACCESSORIES', description: 'High capacity, 0-4 bar adjustable', stock_quantity: 25, image_url: 'https://images.unsplash.com/photo-1581092335871-4b6e0d0e9b4a?w=400' }
+            { id: 1, name: 'Fuel Dispenser Nozzle', category: 'PETROLEUM EQUIPMENTS', description: 'Automatic shut-off nozzle, 1" inlet', stock_quantity: 12, image_url: LOCAL_PLACEHOLDER },
+            { id: 2, name: 'Explosion-Proof LED Light', category: 'PETROLEUM ELECTRICALS', description: 'Class I Division 1, 100W', stock_quantity: 8, image_url: LOCAL_PLACEHOLDER },
+            { id: 3, name: 'LPG Regulator', category: 'PETROLEUM GAS AND ACCESSORIES', description: 'High capacity, 0-4 bar adjustable', stock_quantity: 25, image_url: LOCAL_PLACEHOLDER }
         ];
         displayFeaturedProducts(dummyProducts);
     }
@@ -184,7 +182,7 @@ function displayFeaturedProducts(products) {
     
     featuredGrid.innerHTML = products.map(product => `
         <div class="product-card">
-           <img src="${product.image_url || 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'300\' height=\'200\' viewBox=\'0 0 300 200\'%3E%3Crect width=\'300\' height=\'200\' fill=\'%23f0f0f0\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23999\' font-family=\'Arial\' font-size=\'14\'%3ENo Image%3C/text%3E%3C/svg%3E'}"  alt="${escapeHtml(product.name)}" class="product-img" onerror="this.src='https://via.placeholder.com/300x200?text=Image+Not+Found'">
+            <img src="${product.image_url || LOCAL_PLACEHOLDER}" alt="${escapeHtml(product.name)}" class="product-img">
             <div class="product-info">
                 <h3 class="product-name">${escapeHtml(product.name)}</h3>
                 <p class="product-category">${escapeHtml(product.category_name || product.category)}</p>
@@ -197,7 +195,6 @@ function displayFeaturedProducts(products) {
         </div>
     `).join('');
     
-    // Attach inquiry event listeners
     document.querySelectorAll('.inquire-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
             const id = btn.dataset.productId;
@@ -208,14 +205,12 @@ function displayFeaturedProducts(products) {
     });
 }
 
-// ========== INQUIRY FUNCTION (Opens Email Client) ==========
 function openEmailInquiry(productId, productName, category) {
     const subject = `Inquiry about Product: ${productName} (ID: ${productId})`;
     const body = `Hello GAZCOM,\n\nI am interested in the following product:\n\nProduct Name: ${productName}\nProduct ID: ${productId}\nCategory: ${category}\n\nPlease provide me with more details, availability, and any further information.\n\nThank you.\n\n[Your Name]\n[Your Email]\n[Your Phone]`;
     window.location.href = `mailto:gazcom.gm@gmail.com?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
-// ========== UTILITY: ESCAPE HTML ==========
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -226,7 +221,6 @@ function escapeHtml(str) {
     });
 }
 
-// ========== MOBILE MENU TOGGLE ==========
 function initMobileMenu() {
     const toggle = document.getElementById('mobileToggle');
     const navMenu = document.getElementById('navMenu');
@@ -237,22 +231,16 @@ function initMobileMenu() {
     }
 }
 
-// ========== INITIALIZE PAGE ==========
 async function init() {
     initMobileMenu();
-    
-    // Setup carousel buttons
     if (prevBtn) prevBtn.addEventListener('click', prevSlide);
     if (nextBtn) nextBtn.addEventListener('click', nextSlide);
     
-    // Load categories and build carousel
     const categories = await fetchCategories();
     categoriesData = categories;
     buildCarousel(categories);
     
-    // Load featured products
     await fetchFeaturedProducts();
 }
 
-// Run when DOM is ready
 document.addEventListener('DOMContentLoaded', init);
