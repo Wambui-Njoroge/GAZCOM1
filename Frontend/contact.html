@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Contact Us - GAZCOM | For Your Petroleum Solutions</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .contact-section {
+            padding: 3rem 0;
+        }
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        .contact-info-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+        .contact-info-card i {
+            font-size: 2rem;
+            color: var(--orange);
+            margin-bottom: 1rem;
+        }
+        .contact-form-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            font-family: inherit;
+        }
+        .submit-btn {
+            background: var(--orange);
+            color: white;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        @media (max-width: 768px) {
+            .contact-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ========== NAVBAR (identical to index.html) ========== -->
+    <nav class="navbar">
+        <div class="container nav-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-oil-can"></i> GAZCOM
+                <span>General Merchants</span>
+            </a>
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <ul class="nav-menu" id="navMenu">
+                <li><a href="index.html">Home</a></li>
+                <li><a href="shop.html">Shop</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="contact.html" class="active">Contact</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- ========== CONTENT ========== -->
+    <div class="container contact-section">
+        <div class="contact-grid">
+            <div class="contact-info-card">
+                <i class="fas fa-map-marker-alt"></i>
+                <h3>Visit Us</h3>
+                <p>Nairobi, Kenya</p>
+                <i class="fas fa-phone-alt"></i>
+                <h3>Call Us</h3>
+                <p>+254 724 515 819</p>
+                <i class="fab fa-whatsapp"></i>
+                <h3>WhatsApp</h3>
+                <p>+254 724 515 819</p>
+                <i class="fas fa-envelope"></i>
+                <h3>Email</h3>
+                <p>gazcom.gm@gmail.com</p>
+            </div>
+            <div class="contact-form-card">
+                <h2>Send us a message</h2>
+                <div id="formSuccess" class="success-msg">Message sent! We'll get back to you soon.</div>
+                <form id="contactForm">
+                    <div class="form-group"><input type="text" id="name" placeholder="Your Name" required></div>
+                    <div class="form-group"><input type="email" id="email" placeholder="Your Email" required></div>
+                    <div class="form-group"><input type="tel" id="phone" placeholder="Phone Number"></div>
+                    <div class="form-group"><input type="text" id="subject" placeholder="Subject"></div>
+                    <div class="form-group"><textarea id="message" rows="5" placeholder="Your Message" required></textarea></div>
+                    <button type="submit" class="submit-btn">Send Message</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== FOOTER (identical to index.html) ========== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-col">
+                    <h4>GAZCOM General Merchants</h4>
+                    <p>For Your Petroleum Solutions.</p>
+                    <div class="contact-info">
+                        <p><i class="fas fa-phone-alt"></i> +254 724 515 819</p>
+                        <p><i class="fab fa-whatsapp"></i> +254 724 515 819</p>
+                        <p><i class="fas fa-envelope"></i> gazcom.gm@gmail.com</p>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="shop.html">Products</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="contact.html">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4>Follow Us</h4>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-twitter"></i></a>
+                        <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 GAZCOM General Merchants. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/main.js"></script>
+    <script>
+        const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? 'http://localhost:5000/api'
+            : 'https://your-backend-url.onrender.com/api';
+
+        document.getElementById('contactForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('name').value,
+                email: document.getElementById('email').value,
+                phone: document.getElementById('phone').value,
+                subject: document.getElementById('subject').value,
+                message: document.getElementById('message').value
+            };
+            try {
+                const res = await fetch(`${API_BASE}/contact`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (res.ok) {
+                    document.getElementById('formSuccess').style.display = 'block';
+                    document.getElementById('contactForm').reset();
+                    setTimeout(() => document.getElementById('formSuccess').style.display = 'none', 5000);
+                } else alert('Failed to send. Please try again.');
+            } catch(err) { alert('Error sending message.'); }
+        });
+    </script>
+</body>
+</html>
