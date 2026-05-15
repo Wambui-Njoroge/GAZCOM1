@@ -2,7 +2,7 @@
 // API Base URL (change to your Render backend URL later)
 const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:5000/api'
-    : 'https://your-backend-url.onrender.com/api';  // Update this after deployment
+    : 'https://gazcom1.onrender.com'; 
 
 // ========== GLOBAL VARIABLES ==========
 let currentSlide = 0;
