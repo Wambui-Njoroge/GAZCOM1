@@ -250,9 +250,17 @@ document.querySelectorAll('.sidebar a').forEach(link => {
 
 // ----- Logout: clear localStorage and redirect -----
 document.getElementById('logoutBtn')?.addEventListener('click', () => {
-    localStorage.removeItem('adminToken');
-    localStorage.removeItem('adminUser');   // remove any extra stored user data
-    window.location.href = 'login.html';
+    // Clear all localStorage and sessionStorage
+    localStorage.clear();
+    sessionStorage.clear();
+    
+    // Clear any cookies (if used)
+    document.cookie.split(";").forEach(c => {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+    });
+    
+    // Replace the current history entry with login page (prevents back button)
+    window.location.replace('login.html');
 });
 
 // ----- Close modals -----
