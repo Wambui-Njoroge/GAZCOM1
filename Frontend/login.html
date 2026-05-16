@@ -128,6 +128,7 @@
             </div>
             <div class="form-group">
                 <label><i class="fas fa-lock"></i> Password</label>
+                <!-- Use type="text" temporarily then change to password to trick autofill? Better: use readonly on focus -->
                 <input type="password" id="password" name="password" placeholder="••••••" autocomplete="off" required>
             </div>
             <button type="submit" class="login-btn">Login <i class="fas fa-arrow-right"></i></button>
@@ -136,15 +137,28 @@
     </div>
 
     <script>
-        // Direct API endpoint – uses your actual backend URL
+        // Force clear fields with multiple strategies
+        function clearLoginFields() {
+            const usernameField = document.getElementById('username');
+            const passwordField = document.getElementById('password');
+            if (usernameField) usernameField.value = '';
+            if (passwordField) passwordField.value = '';
+        }
+
+        // Run immediately
+        clearLoginFields();
+
+        // Run again after a short delay (for browsers that autofill later)
+        setTimeout(clearLoginFields, 10);
+        setTimeout(clearLoginFields, 100);
+
+        // Also run on pageshow (for back/forward cache)
+        window.addEventListener('pageshow', clearLoginFields);
+
+        // Also run when the page gains focus (just in case)
+        window.addEventListener('focus', clearLoginFields);
+
         const API_BASE = 'https://gazcom1.onrender.com/api';
-
-        // Clear any pre-filled values on page load (extra safety)
-        window.addEventListener('load', function() {
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
-        });
-
         const loginForm = document.getElementById('loginForm');
         const errorDiv = document.getElementById('errorMsg');
 
@@ -163,13 +177,14 @@
                 const data = await response.json();
                 if (!response.ok) throw new Error(data.error || 'Login failed');
                 
-                // Store token and redirect
                 localStorage.setItem('adminToken', data.token);
                 localStorage.setItem('adminUser', JSON.stringify(data.user));
                 window.location.href = 'admin.html';
             } catch (err) {
                 errorDiv.textContent = err.message;
                 errorDiv.style.display = 'block';
+                // Clear fields again on error to be safe
+                clearLoginFields();
             }
         });
     </script>
