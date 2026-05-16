@@ -4,6 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Admin Login - GAZCOM</title>
+    <!-- Prevent caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
@@ -117,14 +121,14 @@
             <p>GAZCOM General Merchants</p>
         </div>
         <div id="errorMsg" class="error-message"></div>
-        <form id="loginForm">
+        <form id="loginForm" autocomplete="off">
             <div class="form-group">
                 <label><i class="fas fa-user"></i> Username</label>
-                <input type="text" id="username" placeholder="gazcom_admin" required autocomplete="off">
+                <input type="text" id="username" name="username" placeholder="gazcom_admin" autocomplete="off" required>
             </div>
             <div class="form-group">
                 <label><i class="fas fa-lock"></i> Password</label>
-                <input type="password" id="password" placeholder="••••••" required>
+                <input type="password" id="password" name="password" placeholder="••••••" autocomplete="off" required>
             </div>
             <button type="submit" class="login-btn">Login <i class="fas fa-arrow-right"></i></button>
         </form>
@@ -134,6 +138,12 @@
     <script>
         // Direct API endpoint – uses your actual backend URL
         const API_BASE = 'https://gazcom1.onrender.com/api';
+
+        // Clear any pre-filled values on page load (extra safety)
+        window.addEventListener('load', function() {
+            document.getElementById('username').value = '';
+            document.getElementById('password').value = '';
+        });
 
         const loginForm = document.getElementById('loginForm');
         const errorDiv = document.getElementById('errorMsg');
