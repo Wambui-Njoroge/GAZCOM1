@@ -1,17 +1,17 @@
-// ========== GAZCOM ADMIN PANEL JS (CORRECTED) ==========
+// ========== GAZCOM ADMIN PANEL JS (with logout fix) ==========
 const API_BASE = 'https://gazcom1.onrender.com/api';
 let token = localStorage.getItem('adminToken');
 
 // Redirect to login if no token and not already on login page
 if (!token && !window.location.href.includes('login.html')) {
-    window.location.href = 'login.html';
+    window.location.replace('login.html');
 }
 
 // Helper fetch with authentication
 async function authFetch(url, options = {}) {
     if (!token) {
         localStorage.removeItem('adminToken');
-        window.location.href = 'login.html';
+        window.location.replace('login.html');
         throw new Error('No token');
     }
     options.headers = {
@@ -22,7 +22,7 @@ async function authFetch(url, options = {}) {
     const res = await fetch(url, options);
     if (res.status === 401 || res.status === 403) {
         localStorage.removeItem('adminToken');
-        window.location.href = 'login.html';
+        window.location.replace('login.html');
         throw new Error('Session expired');
     }
     return res;
@@ -69,7 +69,7 @@ window.deleteProduct = async function(id) {
 };
 
 window.editProduct = async function(id) {
-    await ensureCategoriesLoaded();  // make sure dropdown has options
+    await ensureCategoriesLoaded();
     const res = await authFetch(`${API_BASE}/admin/products/${id}`);
     const p = await res.json();
     document.getElementById('productId').value = p.id;
@@ -89,7 +89,6 @@ window.editProduct = async function(id) {
 async function loadCategories() {
     const res = await authFetch(`${API_BASE}/admin/categories`);
     const cats = await res.json();
-    // Update categories table
     const tbody = document.querySelector('#categoriesTable tbody');
     if (tbody) {
         tbody.innerHTML = cats.map(c => `
@@ -104,10 +103,9 @@ async function loadCategories() {
             </tr>
         `).join('');
     }
-    // Populate product modal category dropdown
     const catSelect = document.getElementById('productCategory');
     if (catSelect) {
-        catSelect.innerHTML = '<option value="">Select Category</option>' + 
+        catSelect.innerHTML = '<option value="">Select Category</option>' +
             cats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
     }
     return cats;
@@ -182,7 +180,7 @@ document.getElementById('addProductBtn')?.addEventListener('click', async () => 
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
     document.getElementById('productModalTitle').innerText = 'Add Product';
-    await ensureCategoriesLoaded(); // load categories into dropdown
+    await ensureCategoriesLoaded();
     document.getElementById('productModal').style.display = 'flex';
 });
 
@@ -227,7 +225,7 @@ document.getElementById('categoryForm')?.addEventListener('submit', async (e) =>
     const method = id ? 'PUT' : 'POST';
     await authFetch(url, { method, body: JSON.stringify(data) });
     document.getElementById('categoryModal').style.display = 'none';
-    await loadCategories();   // refresh both tables and dropdown
+    await loadCategories();
     loadStats();
 });
 
@@ -248,18 +246,16 @@ document.querySelectorAll('.sidebar a').forEach(link => {
     });
 });
 
-// ----- Logout: clear localStorage and redirect -----
+// ----- STRONG LOGOUT: clear everything and replace history -----
 document.getElementById('logoutBtn')?.addEventListener('click', () => {
-    // Clear all localStorage and sessionStorage
+    // Clear all web storage
     localStorage.clear();
     sessionStorage.clear();
-    
-    // Clear any cookies (if used)
+    // Clear any cookies
     document.cookie.split(";").forEach(c => {
         document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-    
-    // Replace the current history entry with login page (prevents back button)
+    // Replace the current history entry to prevent back button from returning to admin
     window.location.replace('login.html');
 });
 
@@ -267,7 +263,7 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
 document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display = 'none');
 document.getElementById('closeCategoryModalBtn')?.addEventListener('click', () => document.getElementById('categoryModal').style.display = 'none');
 
-// Helper to escape HTML
+// Helper escape HTML
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -278,7 +274,7 @@ function escapeHtml(str) {
     });
 }
 
-// ---- Initial load: preload stats, categories, and products ----
+// Initial load
 loadStats();
 loadCategories();
 loadProducts();
