@@ -1,14 +1,19 @@
-// Admin Panel JS – CORRECTED
-const API_BASE = 'https://gazcom1.onrender.com/api';   // Your actual backend URL
+// ========== GAZCOM ADMIN PANEL JS (CORRECTED) ==========
+const API_BASE = 'https://gazcom1.onrender.com/api';
 let token = localStorage.getItem('adminToken');
 
+// Redirect to login if no token and not already on login page
 if (!token && !window.location.href.includes('login.html')) {
     window.location.href = 'login.html';
 }
 
-// Helper fetch with auth
+// Helper fetch with authentication
 async function authFetch(url, options = {}) {
-    if (!token) { window.location.href = 'login.html'; throw new Error('No token'); }
+    if (!token) {
+        localStorage.removeItem('adminToken');
+        window.location.href = 'login.html';
+        throw new Error('No token');
+    }
     options.headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -23,7 +28,7 @@ async function authFetch(url, options = {}) {
     return res;
 }
 
-// Load dashboard stats
+// ----- Dashboard stats -----
 async function loadStats() {
     try {
         const res = await authFetch(`${API_BASE}/admin/stats`);
@@ -31,34 +36,40 @@ async function loadStats() {
         document.getElementById('totalProducts').innerText = data.totalProducts;
         document.getElementById('totalCategories').innerText = data.totalCategories;
         document.getElementById('pendingMessages').innerText = data.pendingMessages;
-    } catch(err) { console.error(err); }
+    } catch(err) { console.error('Stats error:', err); }
 }
 
-// Products
+// ----- Products -----
 async function loadProducts() {
     const res = await authFetch(`${API_BASE}/admin/products`);
     const products = await res.json();
     const tbody = document.querySelector('#productsTable tbody');
+    if (!tbody) return;
     tbody.innerHTML = products.map(p => `
         <tr>
-            <td>${p.id}</td><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.category_name || '-')}</td>
-            <td>${p.stock_quantity}</td><td>${p.is_featured ? 'Yes' : 'No'}</td>
-            <td><button class="btn btn-edit" onclick="editProduct(${p.id})">Edit</button>
-            <button class="btn btn-danger" onclick="deleteProduct(${p.id})">Delete</button></td>
+            <td>${p.id}</td>
+            <td>${escapeHtml(p.name)}</td>
+            <td>${escapeHtml(p.category_name || '-')}</td>
+            <td>${p.stock_quantity}</td>
+            <td>${p.is_featured ? 'Yes' : 'No'}</td>
+            <td>
+                <button class="btn btn-edit" onclick="editProduct(${p.id})">Edit</button>
+                <button class="btn btn-danger" onclick="deleteProduct(${p.id})">Delete</button>
+            </td>
         </tr>
     `).join('');
 }
 
-async function deleteProduct(id) {
-    if (confirm('Delete product?')) {
+window.deleteProduct = async function(id) {
+    if (confirm('Delete this product?')) {
         await authFetch(`${API_BASE}/admin/products/${id}`, { method: 'DELETE' });
-        loadProducts(); loadStats();
+        loadProducts();
+        loadStats();
     }
-}
+};
 
-async function editProduct(id) {
-    // Ensure categories are loaded before showing modal (so dropdown has options)
-    await ensureCategoriesLoaded();
+window.editProduct = async function(id) {
+    await ensureCategoriesLoaded();  // make sure dropdown has options
     const res = await authFetch(`${API_BASE}/admin/products/${id}`);
     const p = await res.json();
     document.getElementById('productId').value = p.id;
@@ -72,44 +83,52 @@ async function editProduct(id) {
     document.getElementById('productCategory').value = p.category_id;
     document.getElementById('productModalTitle').innerText = 'Edit Product';
     document.getElementById('productModal').style.display = 'flex';
-}
+};
 
-// Categories dropdown population (used by product modal)
-async function ensureCategoriesLoaded() {
-    const catSelect = document.getElementById('productCategory');
-    // If already populated with categories (more than just the placeholder option), skip
-    if (catSelect.children.length > 1) return;
-    await loadCategories(); // this will populate the dropdown
-}
-
-// Load categories for the table and also populate product dropdown
+// ----- Categories (also populates product dropdown) -----
 async function loadCategories() {
     const res = await authFetch(`${API_BASE}/admin/categories`);
     const cats = await res.json();
     // Update categories table
     const tbody = document.querySelector('#categoriesTable tbody');
-    tbody.innerHTML = cats.map(c => `
-        <tr>
-            <td>${c.id}</td><td>${escapeHtml(c.name)}</td><td>${c.display_order || 0}</td>
-            <td><button class="btn btn-edit" onclick="editCategory(${c.id})">Edit</button>
-            <button class="btn btn-danger" onclick="deleteCategory(${c.id})">Delete</button></td>
-        </tr>
-    `).join('');
+    if (tbody) {
+        tbody.innerHTML = cats.map(c => `
+            <tr>
+                <td>${c.id}</td>
+                <td>${escapeHtml(c.name)}</td>
+                <td>${c.display_order || 0}</td>
+                <td>
+                    <button class="btn btn-edit" onclick="editCategory(${c.id})">Edit</button>
+                    <button class="btn btn-danger" onclick="deleteCategory(${c.id})">Delete</button>
+                </td>
+            </tr>
+        `).join('');
+    }
     // Populate product modal category dropdown
     const catSelect = document.getElementById('productCategory');
-    catSelect.innerHTML = '<option value="">Select Category</option>' + cats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+    if (catSelect) {
+        catSelect.innerHTML = '<option value="">Select Category</option>' + 
+            cats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+    }
+    return cats;
 }
 
-async function deleteCategory(id) {
-    if (confirm('Delete category? Products will lose category.')) {
-        await authFetch(`${API_BASE}/admin/categories/${id}`, { method: 'DELETE' });
-        loadCategories(); loadStats();
-        // Also refresh product dropdown after deletion
+async function ensureCategoriesLoaded() {
+    const catSelect = document.getElementById('productCategory');
+    if (catSelect && catSelect.children.length <= 1) {
         await loadCategories();
     }
 }
 
-function editCategory(id) {
+window.deleteCategory = async function(id) {
+    if (confirm('Delete category? Products will lose this category.')) {
+        await authFetch(`${API_BASE}/admin/categories/${id}`, { method: 'DELETE' });
+        loadCategories();
+        loadStats();
+    }
+};
+
+window.editCategory = function(id) {
     document.getElementById('categoryId').value = id;
     document.getElementById('categoryModalTitle').innerText = 'Edit Category';
     fetch(`${API_BASE}/admin/categories/${id}`, { headers: { Authorization: `Bearer ${token}` } })
@@ -121,14 +140,49 @@ function editCategory(id) {
             document.getElementById('categoryOrder').value = c.display_order || 0;
         });
     document.getElementById('categoryModal').style.display = 'flex';
+};
+
+// ----- Messages -----
+async function loadMessages() {
+    const res = await authFetch(`${API_BASE}/admin/messages`);
+    const msgs = await res.json();
+    const tbody = document.querySelector('#messagesTable tbody');
+    if (!tbody) return;
+    tbody.innerHTML = msgs.map(m => `
+        <tr>
+            <td>${new Date(m.created_at).toLocaleDateString()}</td>
+            <td>${escapeHtml(m.name)}</td>
+            <td>${escapeHtml(m.email)}</td>
+            <td>${escapeHtml(m.message.substring(0, 80))}...</td>
+            <td><span style="background:${m.status==='pending'?'orange':'green'};color:white;padding:2px 8px;border-radius:20px;">${m.status}</span></td>
+        </tr>
+    `).join('');
 }
 
+// ----- Cloudinary upload -----
+document.getElementById('uploadImageBtn')?.addEventListener('click', async () => {
+    const fileInput = document.getElementById('productImageUpload');
+    if (!fileInput.files[0]) { alert('Select a file first'); return; }
+    const formData = new FormData();
+    formData.append('image', fileInput.files[0]);
+    const res = await fetch(`${API_BASE}/admin/upload`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` },
+        body: formData
+    });
+    const data = await res.json();
+    if (res.ok) {
+        document.getElementById('productImage').value = data.imageUrl;
+        alert('Image uploaded successfully');
+    } else alert('Upload failed: ' + (data.error || 'Unknown error'));
+});
+
+// ----- Modal event listeners -----
 document.getElementById('addProductBtn')?.addEventListener('click', async () => {
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
     document.getElementById('productModalTitle').innerText = 'Add Product';
-    // Ensure categories are loaded before showing modal
-    await ensureCategoriesLoaded();
+    await ensureCategoriesLoaded(); // load categories into dropdown
     document.getElementById('productModal').style.display = 'flex';
 });
 
@@ -149,10 +203,10 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
     const method = id ? 'PUT' : 'POST';
     await authFetch(url, { method, body: JSON.stringify(data) });
     document.getElementById('productModal').style.display = 'none';
-    loadProducts(); loadStats();
+    loadProducts();
+    loadStats();
 });
 
-// Category form submit
 document.getElementById('addCategoryBtn')?.addEventListener('click', () => {
     document.getElementById('categoryForm').reset();
     document.getElementById('categoryId').value = '';
@@ -173,43 +227,11 @@ document.getElementById('categoryForm')?.addEventListener('submit', async (e) =>
     const method = id ? 'PUT' : 'POST';
     await authFetch(url, { method, body: JSON.stringify(data) });
     document.getElementById('categoryModal').style.display = 'none';
-    loadCategories(); loadStats();
+    await loadCategories();   // refresh both tables and dropdown
+    loadStats();
 });
 
-// Messages
-async function loadMessages() {
-    const res = await authFetch(`${API_BASE}/admin/messages`);
-    const msgs = await res.json();
-    const tbody = document.querySelector('#messagesTable tbody');
-    tbody.innerHTML = msgs.map(m => `
-        <tr>
-            <td>${new Date(m.created_at).toLocaleDateString()}</td>
-            <td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.email)}</td>
-            <td>${escapeHtml(m.message.substring(0, 80))}...</td>
-            <td><span style="background:${m.status==='pending'?'orange':'green'};color:white;padding:2px 8px;border-radius:20px;">${m.status}</span></td>
-        </tr>
-    `).join('');
-}
-
-// Cloudinary upload
-document.getElementById('uploadImageBtn')?.addEventListener('click', async () => {
-    const fileInput = document.getElementById('productImageUpload');
-    if (!fileInput.files[0]) { alert('Select a file first'); return; }
-    const formData = new FormData();
-    formData.append('image', fileInput.files[0]);
-    const res = await fetch(`${API_BASE}/admin/upload`, {
-        method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` },
-        body: formData
-    });
-    const data = await res.json();
-    if (res.ok) {
-        document.getElementById('productImage').value = data.imageUrl;
-        alert('Image uploaded successfully');
-    } else alert('Upload failed');
-});
-
-// Navigation
+// ----- Sidebar navigation -----
 document.querySelectorAll('.sidebar a').forEach(link => {
     link.addEventListener('click', (e) => {
         e.preventDefault();
@@ -226,15 +248,18 @@ document.querySelectorAll('.sidebar a').forEach(link => {
     });
 });
 
+// ----- Logout: clear localStorage and redirect -----
 document.getElementById('logoutBtn')?.addEventListener('click', () => {
     localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminUser');   // remove any extra stored user data
     window.location.href = 'login.html';
 });
 
-// Close modals
+// ----- Close modals -----
 document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display = 'none');
 document.getElementById('closeCategoryModalBtn')?.addEventListener('click', () => document.getElementById('categoryModal').style.display = 'none');
 
+// Helper to escape HTML
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {
@@ -245,7 +270,7 @@ function escapeHtml(str) {
     });
 }
 
-// Initial load
+// ---- Initial load: preload stats, categories, and products ----
 loadStats();
-loadCategories();   // Preload categories so dropdown is ready when product modal opens
-loadProducts();     // Preload products for the products section (optional)
+loadCategories();
+loadProducts();
