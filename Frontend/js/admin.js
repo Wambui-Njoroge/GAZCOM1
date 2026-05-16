@@ -1,5 +1,5 @@
-// Admin Panel JS
-const API_BASE = window.location.hostname === 'localhost' ? 'http://localhost:5000/api' : 'https://your-backend-url.onrender.com/api';
+// Admin Panel JS – CORRECTED
+const API_BASE = 'https://gazcom1.onrender.com/api';   // Your actual backend URL
 let token = localStorage.getItem('adminToken');
 
 if (!token && !window.location.href.includes('login.html')) {
@@ -41,7 +41,7 @@ async function loadProducts() {
     const tbody = document.querySelector('#productsTable tbody');
     tbody.innerHTML = products.map(p => `
         <tr>
-            <td>${p.id}</td><td>${p.name}</td><td>${p.category_name || '-'}</td>
+            <td>${p.id}</td><td>${escapeHtml(p.name)}</td><td>${escapeHtml(p.category_name || '-')}</td>
             <td>${p.stock_quantity}</td><td>${p.is_featured ? 'Yes' : 'No'}</td>
             <td><button class="btn btn-edit" onclick="editProduct(${p.id})">Edit</button>
             <button class="btn btn-danger" onclick="deleteProduct(${p.id})">Delete</button></td>
@@ -57,6 +57,8 @@ async function deleteProduct(id) {
 }
 
 async function editProduct(id) {
+    // Ensure categories are loaded before showing modal (so dropdown has options)
+    await ensureCategoriesLoaded();
     const res = await authFetch(`${API_BASE}/admin/products/${id}`);
     const p = await res.json();
     document.getElementById('productId').value = p.id;
@@ -72,10 +74,61 @@ async function editProduct(id) {
     document.getElementById('productModal').style.display = 'flex';
 }
 
-document.getElementById('addProductBtn')?.addEventListener('click', () => {
+// Categories dropdown population (used by product modal)
+async function ensureCategoriesLoaded() {
+    const catSelect = document.getElementById('productCategory');
+    // If already populated with categories (more than just the placeholder option), skip
+    if (catSelect.children.length > 1) return;
+    await loadCategories(); // this will populate the dropdown
+}
+
+// Load categories for the table and also populate product dropdown
+async function loadCategories() {
+    const res = await authFetch(`${API_BASE}/admin/categories`);
+    const cats = await res.json();
+    // Update categories table
+    const tbody = document.querySelector('#categoriesTable tbody');
+    tbody.innerHTML = cats.map(c => `
+        <tr>
+            <td>${c.id}</td><td>${escapeHtml(c.name)}</td><td>${c.display_order || 0}</td>
+            <td><button class="btn btn-edit" onclick="editCategory(${c.id})">Edit</button>
+            <button class="btn btn-danger" onclick="deleteCategory(${c.id})">Delete</button></td>
+        </tr>
+    `).join('');
+    // Populate product modal category dropdown
+    const catSelect = document.getElementById('productCategory');
+    catSelect.innerHTML = '<option value="">Select Category</option>' + cats.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
+}
+
+async function deleteCategory(id) {
+    if (confirm('Delete category? Products will lose category.')) {
+        await authFetch(`${API_BASE}/admin/categories/${id}`, { method: 'DELETE' });
+        loadCategories(); loadStats();
+        // Also refresh product dropdown after deletion
+        await loadCategories();
+    }
+}
+
+function editCategory(id) {
+    document.getElementById('categoryId').value = id;
+    document.getElementById('categoryModalTitle').innerText = 'Edit Category';
+    fetch(`${API_BASE}/admin/categories/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => res.json())
+        .then(c => {
+            document.getElementById('categoryName').value = c.name;
+            document.getElementById('categoryDesc').value = c.description || '';
+            document.getElementById('categoryImage').value = c.image_url || '';
+            document.getElementById('categoryOrder').value = c.display_order || 0;
+        });
+    document.getElementById('categoryModal').style.display = 'flex';
+}
+
+document.getElementById('addProductBtn')?.addEventListener('click', async () => {
     document.getElementById('productForm').reset();
     document.getElementById('productId').value = '';
     document.getElementById('productModalTitle').innerText = 'Add Product';
+    // Ensure categories are loaded before showing modal
+    await ensureCategoriesLoaded();
     document.getElementById('productModal').style.display = 'flex';
 });
 
@@ -99,44 +152,7 @@ document.getElementById('productForm')?.addEventListener('submit', async (e) => 
     loadProducts(); loadStats();
 });
 
-// Categories
-async function loadCategories() {
-    const res = await authFetch(`${API_BASE}/admin/categories`);
-    const cats = await res.json();
-    const tbody = document.querySelector('#categoriesTable tbody');
-    tbody.innerHTML = cats.map(c => `
-        <tr><td>${c.id}</td><td>${c.name}</td><td>${c.display_order || 0}</td>
-        <td><button class="btn btn-edit" onclick="editCategory(${c.id})">Edit</button>
-        <button class="btn btn-danger" onclick="deleteCategory(${c.id})">Delete</button></td></tr>
-    `).join('');
-    // populate category dropdown in product modal
-    const catSelect = document.getElementById('productCategory');
-    catSelect.innerHTML = '<option value="">Select Category</option>' + cats.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
-}
-
-async function deleteCategory(id) {
-    if (confirm('Delete category? Products will lose category.')) {
-        await authFetch(`${API_BASE}/admin/categories/${id}`, { method: 'DELETE' });
-        loadCategories(); loadStats();
-    }
-}
-
-function editCategory(id) {
-    // fetch and populate category modal - simplify: just open form with id
-    document.getElementById('categoryId').value = id;
-    document.getElementById('categoryModalTitle').innerText = 'Edit Category';
-    // optionally load current data via fetch
-    fetch(`${API_BASE}/admin/categories/${id}`, { headers: { Authorization: `Bearer ${token}` } })
-        .then(res => res.json())
-        .then(c => {
-            document.getElementById('categoryName').value = c.name;
-            document.getElementById('categoryDesc').value = c.description || '';
-            document.getElementById('categoryImage').value = c.image_url || '';
-            document.getElementById('categoryOrder').value = c.display_order || 0;
-        });
-    document.getElementById('categoryModal').style.display = 'flex';
-}
-
+// Category form submit
 document.getElementById('addCategoryBtn')?.addEventListener('click', () => {
     document.getElementById('categoryForm').reset();
     document.getElementById('categoryId').value = '';
@@ -168,8 +184,8 @@ async function loadMessages() {
     tbody.innerHTML = msgs.map(m => `
         <tr>
             <td>${new Date(m.created_at).toLocaleDateString()}</td>
-            <td>${m.name}</td><td>${m.email}</td>
-            <td>${m.message.substring(0, 80)}...</td>
+            <td>${escapeHtml(m.name)}</td><td>${escapeHtml(m.email)}</td>
+            <td>${escapeHtml(m.message.substring(0, 80))}...</td>
             <td><span style="background:${m.status==='pending'?'orange':'green'};color:white;padding:2px 8px;border-radius:20px;">${m.status}</span></td>
         </tr>
     `).join('');
@@ -219,6 +235,17 @@ document.getElementById('logoutBtn')?.addEventListener('click', () => {
 document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display = 'none');
 document.getElementById('closeCategoryModalBtn')?.addEventListener('click', () => document.getElementById('categoryModal').style.display = 'none');
 
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
 // Initial load
 loadStats();
-loadProducts(); // preload for first view if needed, but dashboard is default
+loadCategories();   // Preload categories so dropdown is ready when product modal opens
+loadProducts();     // Preload products for the products section (optional)
