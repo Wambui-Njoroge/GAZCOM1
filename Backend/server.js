@@ -1,4 +1,4 @@
-// ========== GAZCOM BACKEND ==========
+// ========== GAZCOM BACKEND (with detailed logging) ==========
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
@@ -13,7 +13,7 @@ const db = require('./db');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// ---------- CORS (allow your frontend) ----------
+// ---------- CORS ----------
 const allowedOrigins = [
     'https://gazcom-frontend.onrender.com',
     'http://localhost:5500',
@@ -55,7 +55,7 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage: storage });
 
-// ---------- JWT Auth Middleware ----------
+// ---------- JWT Auth ----------
 function authenticateAdmin(req, res, next) {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token provided' });
@@ -89,7 +89,10 @@ app.get('/api/categories', async (req, res) => {
     try {
         const result = await db.query('SELECT id, name, description, image_url FROM categories ORDER BY display_order NULLS LAST, id');
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('GET /api/categories error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('/api/products', async (req, res) => {
@@ -102,14 +105,20 @@ app.get('/api/products', async (req, res) => {
         query += ` ORDER BY p.created_at DESC`;
         const result = await db.query(query, params);
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('GET /api/products error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('/api/products/featured', async (req, res) => {
     try {
         const result = await db.query(`SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.is_featured = true LIMIT 6`);
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('GET /api/products/featured error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('/api/products/:id', async (req, res) => {
@@ -118,7 +127,10 @@ app.get('/api/products/:id', async (req, res) => {
         const result = await db.query(`SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id WHERE p.id = $1`, [id]);
         if (result.rows.length === 0) return res.status(404).json({ error: 'Product not found' });
         res.json(result.rows[0]);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('GET /api/products/:id error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.post('/api/contact', async (req, res) => {
@@ -129,7 +141,10 @@ app.post('/api/contact', async (req, res) => {
         const adminHtml = `<h2>New Message</h2><p>From: ${name} (${email})</p><p>${message}</p>`;
         await sendEmail(process.env.EMAIL_USER, 'New Contact Message', adminHtml);
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('POST /api/contact error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // ========== ADMIN AUTH ==========
@@ -143,7 +158,10 @@ app.post('/api/admin/login', async (req, res) => {
         if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
         const token = jwt.sign({ id: user.id, username: user.username, role: user.role }, process.env.JWT_SECRET, { expiresIn: '8h' });
         res.json({ token, user: { id: user.id, username: user.username, role: user.role } });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('POST /api/admin/login error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 // ========== PROTECTED ADMIN ROUTES ==========
@@ -157,80 +175,127 @@ app.get('/api/admin/stats', authenticateAdmin, async (req, res) => {
             totalCategories: parseInt(categories.rows[0].count),
             pendingMessages: parseInt(messages.rows[0].count)
         });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('GET /api/admin/stats error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('/api/admin/products', authenticateAdmin, async (req, res) => {
     try {
         const result = await db.query(`SELECT p.*, c.name as category_name FROM products p LEFT JOIN categories c ON p.category_id = c.id ORDER BY p.created_at DESC`);
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('GET /api/admin/products error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.post('/api/admin/products', authenticateAdmin, async (req, res) => {
     try {
         const { name, description, category_id, sku, image_url, stock_quantity, specifications, is_featured } = req.body;
         if (!name || !category_id) return res.status(400).json({ error: 'Name and category required' });
-        const result = await db.query(`INSERT INTO products (name, description, category_id, sku, image_url, stock_quantity, specifications, is_featured) VALUES ($1,$2,$3,$4,$5,$6,$7,$8) RETURNING *`, [name, description, category_id, sku, image_url, stock_quantity || 0, specifications, is_featured || false]);
+        
+        console.log('Creating product with data:', req.body); // Log incoming data
+
+        const result = await db.query(
+            `INSERT INTO products (name, description, category_id, sku, image_url, stock_quantity, specifications, is_featured) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+            [name, description, category_id, sku, image_url, stock_quantity || 0, specifications, is_featured || false]
+        );
         res.status(201).json(result.rows[0]);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('POST /api/admin/products error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.put('/api/admin/products/:id', authenticateAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, category_id, sku, image_url, stock_quantity, specifications, is_featured } = req.body;
-        const result = await db.query(`UPDATE products SET name=$1, description=$2, category_id=$3, sku=$4, image_url=$5, stock_quantity=$6, specifications=$7, is_featured=$8, updated_at=NOW() WHERE id=$9 RETURNING *`, [name, description, category_id, sku, image_url, stock_quantity, specifications, is_featured, id]);
+        const result = await db.query(
+            `UPDATE products SET name=$1, description=$2, category_id=$3, sku=$4, image_url=$5, stock_quantity=$6, specifications=$7, is_featured=$8, updated_at=NOW() 
+             WHERE id=$9 RETURNING *`,
+            [name, description, category_id, sku, image_url, stock_quantity, specifications, is_featured, id]
+        );
         if (result.rows.length === 0) return res.status(404).json({ error: 'Product not found' });
         res.json(result.rows[0]);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('PUT /api/admin/products/:id error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.delete('/api/admin/products/:id', authenticateAdmin, async (req, res) => {
     try {
         await db.query('DELETE FROM products WHERE id=$1', [req.params.id]);
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('DELETE /api/admin/products/:id error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('/api/admin/categories', authenticateAdmin, async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM categories ORDER BY display_order, id');
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('GET /api/admin/categories error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.post('/api/admin/categories', authenticateAdmin, async (req, res) => {
     try {
         const { name, description, image_url, display_order } = req.body;
         if (!name) return res.status(400).json({ error: 'Name required' });
-        const result = await db.query(`INSERT INTO categories (name, description, image_url, display_order) VALUES ($1,$2,$3,$4) RETURNING *`, [name, description, image_url, display_order || 0]);
+        const result = await db.query(
+            `INSERT INTO categories (name, description, image_url, display_order) VALUES ($1,$2,$3,$4) RETURNING *`,
+            [name, description, image_url, display_order || 0]
+        );
         res.status(201).json(result.rows[0]);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('POST /api/admin/categories error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.put('/api/admin/categories/:id', authenticateAdmin, async (req, res) => {
     try {
         const { id } = req.params;
         const { name, description, image_url, display_order } = req.body;
-        const result = await db.query(`UPDATE categories SET name=$1, description=$2, image_url=$3, display_order=$4, updated_at=NOW() WHERE id=$5 RETURNING *`, [name, description, image_url, display_order || 0, id]);
+        const result = await db.query(
+            `UPDATE categories SET name=$1, description=$2, image_url=$3, display_order=$4, updated_at=NOW() WHERE id=$5 RETURNING *`,
+            [name, description, image_url, display_order || 0, id]
+        );
         if (result.rows.length === 0) return res.status(404).json({ error: 'Category not found' });
         res.json(result.rows[0]);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('PUT /api/admin/categories/:id error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.delete('/api/admin/categories/:id', authenticateAdmin, async (req, res) => {
     try {
         await db.query('DELETE FROM categories WHERE id=$1', [req.params.id]);
         res.json({ success: true });
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('DELETE /api/admin/categories/:id error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('/api/admin/messages', authenticateAdmin, async (req, res) => {
     try {
         const result = await db.query('SELECT * FROM contact_messages ORDER BY created_at DESC');
         res.json(result.rows);
-    } catch (err) { res.status(500).json({ error: err.message }); }
+    } catch (err) { 
+        console.error('GET /api/admin/messages error:', err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.post('/api/admin/upload', authenticateAdmin, upload.single('image'), (req, res) => {
@@ -242,6 +307,6 @@ app.post('/api/admin/upload', authenticateAdmin, upload.single('image'), (req, r
 app.get('/api/health', (req, res) => res.json({ status: 'OK' }));
 
 app.listen(PORT, () => {
-    console.log(` Backend running on port ${PORT}`);
-    console.log(`CORS allowed for ${allowedOrigins.join(', ')}`);
+    console.log(`🚀 Backend running on port ${PORT}`);
+    console.log(`✅ CORS allowed for ${allowedOrigins.join(', ')}`);
 });
