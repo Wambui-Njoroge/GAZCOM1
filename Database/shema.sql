@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS categories (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert the 5 main categories (background images will be updated via admin panel)
+
 INSERT INTO categories (name, description, image_url, display_order) VALUES
 ('PETROLEUM EQUIPMENTS', 'High-quality pumps, nozzles, storage tanks, and dispensing systems', 'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=1200', 1),
 ('PETROLEUM ELECTRICALS', 'Explosion-proof lighting, cables, control panels, and electrical accessories', 'https://images.unsplash.com/photo-1563206767-5b18f218e8de?w=1200', 2),
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS products (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create index for faster searches
+
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_featured ON products(is_featured);
 CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku);
@@ -126,6 +126,4 @@ CREATE TRIGGER update_categories_updated_at BEFORE UPDATE ON categories
 CREATE TRIGGER update_products_updated_at BEFORE UPDATE ON products
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
--- ========== VERIFY ADMIN INSERT ==========
--- After running, check that admin user exists:
--- SELECT username, email, role FROM users WHERE username = 'gazcom_admin';
+

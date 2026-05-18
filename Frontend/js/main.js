@@ -16,7 +16,7 @@ const nextBtn = document.getElementById('nextBtn');
 const carouselDots = document.getElementById('carouselDots');
 const featuredGrid = document.getElementById('featuredGrid');
 
-// Local reliable placeholder (no external network)
+
 const LOCAL_PLACEHOLDER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-family='Arial' font-size='14'%3ENo Image%3C/text%3E%3C/svg%3E";
 
 // ========== HELPER FUNCTIONS ==========
@@ -39,7 +39,7 @@ async function fetchCategories() {
         return categories.filter(cat => cat.name && cat.name.trim() !== '');
     } catch (error) {
         console.error('Error fetching categories:', error);
-        // Fallback dummy categories (so carousel works even without backend)
+        
         return [
             { id: 1, name: 'PETROLEUM EQUIPMENTS', description: 'High-quality pumps, nozzles, and storage tanks', image_url: 'https://images.unsplash.com/photo-1581091226033-d5c48150dbaa?w=1200' },
             { id: 2, name: 'PETROLEUM ELECTRICALS', description: 'Explosion-proof lighting, cables, and control systems', image_url: 'https://images.unsplash.com/photo-1563206767-5b18f218e8de?w=1200' },

@@ -1,4 +1,4 @@
-// ========== GAZCOM BACKEND – COMPLETE (with all admin routes) ==========
+// ========== GAZCOM BACKEND ==========
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');

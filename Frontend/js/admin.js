@@ -2,12 +2,12 @@
 const API_BASE = 'https://gazcom1.onrender.com/api';
 let token = localStorage.getItem('adminToken');
 
-// Redirect to login if no token and not already on login page
+
 if (!token && !window.location.href.includes('login.html')) {
     window.location.replace('login.html');
 }
 
-// Helper fetch with authentication
+
 async function authFetch(url, options = {}) {
     if (!token) {
         localStorage.removeItem('adminToken');
@@ -140,7 +140,7 @@ window.editCategory = function(id) {
     document.getElementById('categoryModal').style.display = 'flex';
 };
 
-// ----- Messages -----
+
 async function loadMessages() {
     const res = await authFetch(`${API_BASE}/admin/messages`);
     const msgs = await res.json();
@@ -157,7 +157,6 @@ async function loadMessages() {
     `).join('');
 }
 
-// ----- Cloudinary upload -----
 document.getElementById('uploadImageBtn')?.addEventListener('click', async () => {
     const fileInput = document.getElementById('productImageUpload');
     if (!fileInput.files[0]) { alert('Select a file first'); return; }
@@ -246,24 +245,24 @@ document.querySelectorAll('.sidebar a').forEach(link => {
     });
 });
 
-// ----- STRONG LOGOUT: clear everything and replace history -----
+
 document.getElementById('logoutBtn')?.addEventListener('click', () => {
-    // Clear all web storage
+  
     localStorage.clear();
     sessionStorage.clear();
-    // Clear any cookies
+  
     document.cookie.split(";").forEach(c => {
         document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
     });
-    // Replace the current history entry to prevent back button from returning to admin
+    
     window.location.replace('login.html');
 });
 
-// ----- Close modals -----
+
 document.getElementById('closeModalBtn')?.addEventListener('click', () => document.getElementById('productModal').style.display = 'none');
 document.getElementById('closeCategoryModalBtn')?.addEventListener('click', () => document.getElementById('categoryModal').style.display = 'none');
 
-// Helper escape HTML
+
 function escapeHtml(str) {
     if (!str) return '';
     return str.replace(/[&<>]/g, function(m) {

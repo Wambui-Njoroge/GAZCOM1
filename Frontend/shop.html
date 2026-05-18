@@ -96,12 +96,12 @@
         </div>
     </footer>
 
-    <!-- Main JavaScript -->
+ 
     <script src="js/main.js"></script>
     
-    <!-- Page-specific JavaScript -->
+  
     <script>
-        // No 'API_BASE' declaration here! It's already loaded from main.js
+      
 
         let allProducts = [];
 
@@ -117,7 +117,7 @@
                     option.textContent = cat.name;
                     select.appendChild(option);
                 });
-                // Check URL parameter for pre-selected category
+              
                 const urlParams = new URLSearchParams(window.location.search);
                 const catId = urlParams.get('category');
                 if (catId) {

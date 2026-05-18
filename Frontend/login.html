@@ -137,7 +137,7 @@
     </div>
 
     <script>
-        // Force clear fields with multiple strategies
+        
         function clearLoginFields() {
             const usernameField = document.getElementById('username');
             const passwordField = document.getElementById('password');
@@ -145,17 +145,17 @@
             if (passwordField) passwordField.value = '';
         }
 
-        // Run immediately
+       
         clearLoginFields();
 
-        // Run again after a short delay (for browsers that autofill later)
+       
         setTimeout(clearLoginFields, 10);
         setTimeout(clearLoginFields, 100);
 
-        // Also run on pageshow (for back/forward cache)
+        
         window.addEventListener('pageshow', clearLoginFields);
 
-        // Also run when the page gains focus (just in case)
+       
         window.addEventListener('focus', clearLoginFields);
 
         const API_BASE = 'https://gazcom1.onrender.com/api';
@@ -183,7 +183,7 @@
             } catch (err) {
                 errorDiv.textContent = err.message;
                 errorDiv.style.display = 'block';
-                // Clear fields again on error to be safe
+               
                 clearLoginFields();
             }
         });
