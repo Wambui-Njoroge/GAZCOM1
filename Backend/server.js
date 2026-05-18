@@ -307,6 +307,6 @@ app.post('/api/admin/upload', authenticateAdmin, upload.single('image'), (req, r
 app.get('/api/health', (req, res) => res.json({ status: 'OK' }));
 
 app.listen(PORT, () => {
-    console.log(`🚀 Backend running on port ${PORT}`);
-    console.log(`✅ CORS allowed for ${allowedOrigins.join(', ')}`);
+    console.log(`Backend running on port ${PORT}`);
+    console.log(`CORS allowed for ${allowedOrigins.join(', ')}`);
 });
