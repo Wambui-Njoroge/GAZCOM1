@@ -262,10 +262,19 @@
             });
         }
 
-        function getWhatsAppMessage(product) {
-            return `Hello GAZCOM,%0A%0AI am interested in the following product:%0A%0AProduct: ${product.name}%0AID: ${product.id}%0ACategory: ${product.category_name || 'N/A'}%0A%0APlease provide me with pricing, availability, and any further details.%0A%0AThank you.`;
-        }
+      function getWhatsAppMessage(product) {
+    return `Hello GAZCOM,
 
+I am interested in the following product:
+
+Product: ${product.name}
+ID: ${product.id}
+Category: ${product.category_name || 'N/A'}
+
+Please provide me with pricing, availability, and any further details.
+
+Thank you.`;
+}
         function escapeHtml(str) {
             if (!str) return '';
             return str.replace(/[&<>]/g, function(m) {
